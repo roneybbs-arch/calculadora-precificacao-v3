@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Calculadora de Precificação</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#F5F4F1;color:#1A1916;min-height:100vh;padding:24px 16px 60px}
+.app{width:100%;max-width:560px;margin:0 auto}
+
+.header{margin-bottom:20px}
+.eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.eyebrow-line{width:18px;height:2px;background:#1D9E75;border-radius:2px}
+.eyebrow-txt{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#0F6E56}
+.h-title{font-size:22px;font-weight:300;line-height:1.3}
+.h-title b{font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:11px;font-weight:500;padding:4px 10px;border-radius:99px;background:#E1F5EE;color:#0F6E56;border:1px solid #9FE1CB}
+.dot{width:5px;height:5px;border-radius:50%;background:#1D9E75}
+
+/* TABS PRINCIPAIS */
+.tabs{display:flex;gap:0;margin-bottom:20px;background:#E2E0DA;border-radius:10px;padding:3px}
+.tab{flex:1;padding:8px 10px;font-size:12px;font-weight:500;color:#6B6960;background:transparent;border:none;border-radius:8px;cursor:pointer;transition:all .18s;text-align:center;font-family:inherit}
+.tab.active{background:#fff;color:#1A1916;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* REGIME TOGGLE */
+.regime-wrap{margin-bottom:20px}
+.regime-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#A8A69F;margin-bottom:8px}
+.regime-toggle{display:flex;gap:8px}
+.regime-btn{flex:1;display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border:1.5px solid #E2E0DA;border-radius:12px;cursor:pointer;font-family:inherit;-webkit-appearance:none;touch-action:manipulation;transition:all .18s;text-align:left}
+.regime-btn.active-p{border-color:#378ADD;background:#EEF5FD}
+.regime-btn.active-r{border-color:#1D9E75;background:#E1F5EE}
+.regime-radio{width:18px;height:18px;border-radius:50%;border:2px solid #CCCAC3;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .18s}
+.regime-btn.active-p .regime-radio{border-color:#378ADD;background:#378ADD}
+.regime-btn.active-r .regime-radio{border-color:#1D9E75;background:#1D9E75}
+.regime-radio-inner{width:6px;height:6px;border-radius:50%;background:#fff;display:none}
+.regime-btn.active-p .regime-radio-inner,.regime-btn.active-r .regime-radio-inner{display:block}
+.regime-info{}
+.regime-name{font-size:13px;font-weight:600;color:#1A1916}
+.regime-btn.active-p .regime-name{color:#185FA5}
+.regime-btn.active-r .regime-name{color:#0F6E56}
+.regime-sub{font-size:11px;color:#A8A69F;margin-top:1px}
+.regime-tag{margin-left:auto;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0}
+.tag-p{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.tag-r{background:#E1F5EE;color:#085041;border:1px solid #9FE1CB}
+.tag-m{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.regime-btn.active-m{border-color:#BA7517;background:#FAEEDA}
+.regime-btn.active-m .regime-radio{border-color:#BA7517;background:#BA7517}
+.regime-btn.active-m .regime-radio-inner{display:block}
+.regime-btn.active-m .regime-name{color:#633806}
+.bk-regime.rm{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+
+/* CAMPO PISCOFINS — aparece/some */
+.pis-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;transition:opacity .2s}
+.pis-row.oculto{opacity:0;pointer-events:none;height:0;margin:0;overflow:hidden}
+
+.slbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#A8A69F;margin-bottom:10px}
+
+.icms-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.icms-card{background:#fff;border:1px solid #E2E0DA;border-radius:12px;padding:14px 14px 12px}
+.ic-top{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.ic-dot{width:7px;height:7px;border-radius:50%}
+.ic-dot.in{background:#1D9E75}
+.ic-dot.out{background:#D85A30}
+.ic-dot.pis{background:#7F77DD}
+.ic-lbl{font-size:12px;font-weight:500;color:#6B6960}
+.ic-pill{margin-left:auto;font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px}
+.pill-c{background:#E1F5EE;color:#0F6E56;border:1px solid #9FE1CB}
+.pill-d{background:#FAECE7;color:#993C1D;border:1px solid #F5C4B3}
+.pill-pc{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.ic-row{display:flex;align-items:baseline;gap:3px}
+.ic-inp{width:100%;border:none;background:transparent;outline:none;font-size:26px;font-weight:600;color:#1A1916;-webkit-appearance:none}
+.ic-pct{font-size:14px;color:#A8A69F}
+
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.fcard{background:#fff;border:1px solid #E2E0DA;border-radius:12px;padding:14px 14px 12px;cursor:text}
+.fcard.preco{background:#E1F5EE;border-color:#9FE1CB}
+.fc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fc-lbl{font-size:12px;font-weight:500;color:#6B6960}
+.fcard.preco .fc-lbl{color:#0F6E56}
+.fc-tag{font-size:10px;font-weight:500;color:#A8A69F;background:#F5F4F1;padding:2px 7px;border-radius:99px;border:1px solid #E2E0DA}
+.fcard.preco .fc-tag{background:rgba(255,255,255,.6);color:#0F6E56;border-color:#9FE1CB}
+.fc-row{display:flex;align-items:baseline;gap:4px}
+.fc-pre{font-size:13px;color:#A8A69F}
+.fcard.preco .fc-pre{color:#1D9E75}
+.fc-inp{width:100%;border:none;background:transparent;outline:none;font-size:22px;font-weight:600;color:#1A1916;-webkit-appearance:none}
+.fc-inp::placeholder{color:#D3D1C7}
+.fcard.preco .fc-inp{color:#0F6E56}
+
+.bkcard{background:#fff;border:1px solid #E2E0DA;border-radius:14px;overflow:hidden;margin-bottom:16px}
+.bk-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #E2E0DA}
+.bk-htitle{font-size:13px;font-weight:500;color:#1A1916}
+.bk-badge{display:none;font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;background:#E1F5EE;color:#0F6E56;border:1px solid #9FE1CB}
+.bk-regime{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px}
+.bk-regime.rp{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.bk-regime.rr{background:#E1F5EE;color:#085041;border:1px solid #9FE1CB}
+.empty{padding:28px 16px;text-align:center}
+.empty-ico{width:36px;height:36px;border-radius:50%;background:#F0EFEC;border:1px solid #E2E0DA;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.empty-ico svg{width:16px;height:16px;stroke:#A8A69F;fill:none;stroke-width:1.5;stroke-linecap:round}
+.empty-txt{font-size:13px;color:#A8A69F;line-height:1.5}
+.bk-sec{padding:12px 16px}
+.bk-sec+.bk-sec{border-top:1px solid #E2E0DA}
+.bk-stitle{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#A8A69F;margin-bottom:8px}
+.bk-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
+.bk-l{font-size:13px;color:#6B6960}
+.bk-v{font-size:13px;font-weight:600;color:#1A1916}
+.bk-v.p{color:#0F6E56}
+.bk-v.n{color:#993C1D}
+.bk-row.oculto{display:none}
+.sumbar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #E2E0DA}
+.sc{padding:12px 8px;text-align:center;background:#F0EFEC}
+.sc+.sc{border-left:1px solid #E2E0DA}
+.sl{font-size:10px;color:#A8A69F;margin-bottom:4px}
+.sv{font-size:14px;font-weight:600;color:#1A1916}
+.sv.p{color:#0F6E56}
+.sv.n{color:#993C1D}
+
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:13px;font-weight:500;color:#6B6960;background:#fff;border:1px solid #E2E0DA;border-radius:8px;padding:9px 16px;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;outline:none}
+.btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* TAB ALÍQUOTAS */
+.dept-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.dept-btn{background:#fff;border:1px solid #E2E0DA;border-radius:12px;padding:14px;cursor:pointer;text-align:left;font-family:inherit;-webkit-appearance:none;outline:none;touch-action:manipulation;transition:border-color .15s}
+.dept-btn:hover{border-color:#CCCAC3}
+.dept-btn.active{border-color:#1D9E75;background:#E1F5EE}
+.db-icon{width:32px;height:32px;border-radius:8px;background:#F0EFEC;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.dept-btn.active .db-icon{background:rgba(255,255,255,.7)}
+.db-icon svg{width:16px;height:16px;stroke:#888780;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.dept-btn.active .db-icon svg{stroke:#1D9E75}
+.db-name{font-size:13px;font-weight:600;color:#1A1916;margin-bottom:2px}
+.db-sub{font-size:11px;color:#A8A69F}
+.dept-btn.active .db-name{color:#0F6E56}
+.detail-panel{background:#fff;border:1px solid #E2E0DA;border-radius:14px;overflow:hidden;margin-bottom:16px}
+.dp-hdr{padding:14px 16px;border-bottom:1px solid #E2E0DA;display:flex;align-items:center;gap:10px}
+.dp-icon{width:36px;height:36px;border-radius:9px;background:#E1F5EE;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dp-icon svg{width:16px;height:16px;stroke:#0F6E56;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.dp-title{font-size:14px;font-weight:600;color:#1A1916}
+.dp-subtitle{font-size:11px;color:#A8A69F;margin-top:1px}
+.products-list{padding:0}
+.prod-item{padding:12px 16px;border-bottom:1px solid #E2E0DA}
+.prod-item:last-child{border-bottom:none}
+.prod-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.prod-name{font-size:13px;font-weight:600;color:#1A1916}
+.prod-ncm{font-size:10px;color:#A8A69F;margin-top:1px;font-family:monospace}
+.aliq-pills{display:flex;gap:6px;flex-shrink:0}
+.aliq-pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.aliq-in{background:#E1F5EE;color:#085041;border:1px solid #9FE1CB}
+.aliq-out{background:#FAECE7;color:#712B13;border:1px solid #F5C4B3}
+.aliq-in18{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.aliq-out18{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.prod-obs{font-size:11px;color:#6B6960;line-height:1.5;margin-bottom:4px}
+.prod-source{font-size:10px;color:#A8A69F;padding:4px 8px;background:#F5F4F1;border-radius:6px;display:inline-block}
+.legend-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#6B6960}
+.leg-d{width:8px;height:8px;border-radius:50%}
+.lg-coral{background:#D85A30}
+.lg-blue{background:#378ADD}
+
+@media(max-width:380px){
+  .ic-inp{font-size:22px}
+  .fc-inp{font-size:20px}
+  .sumbar{grid-template-columns:1fr 1fr}
+  .sc:nth-child(odd){border-left:none}
+  .sc:nth-child(even){border-left:1px solid #E2E0DA}
+  .sc:nth-child(3),.sc:nth-child(4){border-top:1px solid #E2E0DA}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-txt">Ferramenta fiscal</span></div>
+    <div class="h-title">Calculadora de<br><b>Precificação</b></div>
+    <div class="badge"><div class="dot"></div>Regime normal ICMS · SP · a partir de 01/04/2026</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab_calc" type="button" onclick="showTab('calc')">Calculadora</button>
+    <button class="tab" id="tab_aliq" type="button" onclick="showTab('aliq')">Alíquotas por departamento</button>
+  </div>
+
+  <!-- ===== CALCULADORA ===== -->
+  <div id="pane_calc">
+
+    <!-- REGIME TRIBUTÁRIO -->
+    <div class="regime-wrap">
+      <div class="regime-lbl">Regime tributário</div>
+      <div class="regime-toggle" style="flex-direction:column;gap:8px">
+        <div style="display:flex;gap:8px">
+          <button class="regime-btn" id="rbtn_p" type="button" onclick="setRegime('P')">
+            <div class="regime-radio"><div class="regime-radio-inner"></div></div>
+            <div class="regime-info">
+              <div class="regime-name">Lucro presumido</div>
+              <div class="regime-sub">Sem crédito PIS/Cofins · 3,65% saída</div>
+            </div>
+            <span class="regime-tag tag-p">3,65%</span>
+          </button>
+          <button class="regime-btn" id="rbtn_r" type="button" onclick="setRegime('R')">
+            <div class="regime-radio"><div class="regime-radio-inner"></div></div>
+            <div class="regime-info">
+              <div class="regime-name">Lucro real</div>
+              <div class="regime-sub">Crédito 9,25% entrada · 9,25% saída</div>
+            </div>
+            <span class="regime-tag tag-r">9,25%</span>
+          </button>
+        </div>
+        <button class="regime-btn" id="rbtn_m" type="button" onclick="setRegime('M')" style="width:100%">
+          <div class="regime-radio"><div class="regime-radio-inner"></div></div>
+          <div class="regime-info">
+            <div class="regime-name">Monofásico / sem PIS-Cofins saída</div>
+            <div class="regime-sub">Produto com tributação concentrada na origem · PIS/Cofins saída = 0%</div>
+          </div>
+          <span class="regime-tag tag-m">0%</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ICMS -->
+    <div class="slbl">ICMS</div>
+    <div class="icms-grid">
+      <div class="icms-card">
+        <div class="ic-top"><div class="ic-dot in"></div><span class="ic-lbl">Entrada</span><span class="ic-pill pill-c">crédito</span></div>
+        <div class="ic-row"><input class="ic-inp" id="icms_in" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="12" value="12"><span class="ic-pct">%</span></div>
+      </div>
+      <div class="icms-card">
+        <div class="ic-top"><div class="ic-dot out"></div><span class="ic-lbl">Saída</span><span class="ic-pill pill-d">débito</span></div>
+        <div class="ic-row"><input class="ic-inp" id="icms_out" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="25" value="25"><span class="ic-pct">%</span></div>
+      </div>
+    </div>
+
+    <!-- PIS/COFINS — visível só no Lucro Real -->
+    <div class="pis-row oculto" id="pis_row">
+      <div class="icms-card">
+        <div class="ic-top"><div class="ic-dot pis"></div><span class="ic-lbl">PIS/Cofins entrada</span><span class="ic-pill pill-pc">crédito</span></div>
+        <div class="ic-row"><input class="ic-inp" id="pis_in" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="9,25" value="9.25"><span class="ic-pct">%</span></div>
+      </div>
+      <div class="icms-card">
+        <div class="ic-top"><div class="ic-dot pis"></div><span class="ic-lbl">PIS/Cofins saída</span><span class="ic-pill pill-d">débito</span></div>
+        <div class="ic-row"><input class="ic-inp" id="pis_out" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="9,25" value="9.25"><span class="ic-pct">%</span></div>
+      </div>
+    </div>
+
+    <!-- CAMPOS -->
+    <div class="slbl">Variáveis de precificação</div>
+    <div class="fgrid">
+      <div class="fcard">
+        <div class="fc-top"><span class="fc-lbl">Custo de aquisição</span><span class="fc-tag">R$</span></div>
+        <div class="fc-row"><span class="fc-pre">R$</span><input class="fc-inp" id="custo" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="0,00"></div>
+      </div>
+      <div class="fcard">
+        <div class="fc-top"><span class="fc-lbl">Markup</span><span class="fc-tag">×</span></div>
+        <div class="fc-row"><input class="fc-inp" id="markup" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="—"><span class="fc-pre">×</span></div>
+      </div>
+      <div class="fcard">
+        <div class="fc-top"><span class="fc-lbl">Margem bruta</span><span class="fc-tag">%</span></div>
+        <div class="fc-row"><input class="fc-inp" id="margem_b" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="—"><span class="fc-pre">%</span></div>
+      </div>
+      <div class="fcard">
+        <div class="fc-top"><span class="fc-lbl">Margem líquida</span><span class="fc-tag">%</span></div>
+        <div class="fc-row"><input class="fc-inp" id="margem" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="—"><span class="fc-pre">%</span></div>
+      </div>
+      <div class="fcard preco" style="grid-column:span 2">
+        <div class="fc-top"><span class="fc-lbl">Preço de venda</span><span class="fc-tag">R$</span></div>
+        <div class="fc-row"><span class="fc-pre">R$</span><input class="fc-inp" id="preco" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="—"></div>
+      </div>
+    </div>
+
+    <!-- DETALHAMENTO -->
+    <div class="slbl">Detalhamento</div>
+    <div class="bkcard">
+      <div class="bk-hdr">
+        <span class="bk-htitle">Composição do preço</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="bk-regime rp" id="bk_regime_tag" style="display:none">Lucro presumido</span>
+          <span class="bk-badge" id="bd_badge">calculado</span>
+        </div>
+      </div>
+      <div id="empty_state" class="empty">
+        <div class="empty-ico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="empty-txt">Preencha custo + margem bruta ou preço<br>para ver o detalhamento</div>
+      </div>
+      <div id="bk_body" style="display:none">
+        <div class="bk-sec">
+          <div class="bk-stitle">Custo</div>
+          <div class="bk-row"><span class="bk-l">Custo de aquisição (bruto)</span><span class="bk-v" id="r_c">—</span></div>
+          <div class="bk-row"><span class="bk-l">Crédito ICMS entrada</span><span class="bk-v p" id="r_cr_icms">—</span></div>
+          <div class="bk-row" id="row_pis_cred"><span class="bk-l">Crédito PIS/Cofins entrada</span><span class="bk-v p" id="r_cr_pis">—</span></div>
+          <div class="bk-row"><span class="bk-l">Custo sem impostos</span><span class="bk-v" id="r_csi">—</span></div>
+        </div>
+        <div class="bk-sec">
+          <div class="bk-stitle">Venda</div>
+          <div class="bk-row"><span class="bk-l">Preço de venda</span><span class="bk-v" id="r_p">—</span></div>
+          <div class="bk-row"><span class="bk-l">Débito ICMS saída</span><span class="bk-v n" id="r_d_icms">—</span></div>
+          <div class="bk-row" id="row_pis_deb"><span class="bk-l">Débito PIS/Cofins saída</span><span class="bk-v n" id="r_d_pis">—</span></div>
+          <div class="bk-row"><span class="bk-l">Receita líquida de impostos</span><span class="bk-v" id="r_rec_liq">—</span></div>
+        </div>
+        <div class="bk-sec">
+          <div class="bk-stitle">Resultado</div>
+          <div class="bk-row"><span class="bk-l">Lucro estimado</span><span class="bk-v p" id="r_l">—</span></div>
+        </div>
+        <div class="sumbar">
+          <div class="sc"><div class="sl">Margem bruta</div><div class="sv p" id="s_mb">—</div></div>
+          <div class="sc"><div class="sl">Margem líquida</div><div class="sv p" id="s_m">—</div></div>
+          <div class="sc"><div class="sl">Markup</div><div class="sv" id="s_mk">—</div></div>
+          <div class="sc"><div class="sl">Carga total</div><div class="sv n" id="s_ic">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" id="btn_reset" type="button">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      Limpar campos
+    </button>
+
+  </div>
+
+  <!-- ===== ALÍQUOTAS ===== -->
+  <div id="pane_aliq" style="display:none">
+    <div class="legend-row">
+      <div class="leg"><div class="leg-d lg-coral"></div>25% — cosméticos e perfumes</div>
+      <div class="leg"><div class="leg-d lg-blue"></div>18% — higiene pessoal</div>
+    </div>
+    <div class="slbl">Selecione o departamento</div>
+    <div class="dept-grid" id="dept_grid"></div>
+    <div id="detail_panel" class="detail-panel" style="display:none">
+      <div class="dp-hdr">
+        <div class="dp-icon" id="dp_icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+        <div><div class="dp-title" id="dp_title">—</div><div class="dp-subtitle" id="dp_subtitle">—</div></div>
+      </div>
+      <div class="products-list" id="dp_products"></div>
+    </div>
+    <div id="detail_empty" style="padding:20px 0;text-align:center;color:#A8A69F;font-size:13px">
+      Selecione um departamento acima para ver as alíquotas
+    </div>
+  </div>
+
+</div>
+<script>
+(function(){
+
+/* ============================================================
+   REGIME
+   ============================================================ */
+var regime = 'P'; /* P = Presumido, R = Real */
+
+function setRegime(r){
+  regime = r;
+  var bp = document.getElementById('rbtn_p');
+  var br = document.getElementById('rbtn_r');
+  var bm = document.getElementById('rbtn_m');
+  bp.className = 'regime-btn' + (r==='P' ? ' active-p' : '');
+  br.className = 'regime-btn' + (r==='R' ? ' active-r' : '');
+  bm.className = 'regime-btn' + (r==='M' ? ' active-m' : '');
+
+  /* campos PIS/Cofins: visíveis só no Lucro Real */
+  var pisRow = document.getElementById('pis_row');
+  pisRow.className = 'pis-row' + (r==='R' ? '' : ' oculto');
+
+  if(r==='P'){
+    document.getElementById('pis_in').value  = '0';
+    document.getElementById('pis_out').value = '3.65';
+  } else if(r==='R'){
+    document.getElementById('pis_in').value  = '9.25';
+    document.getElementById('pis_out').value = '9.25';
+  } else {
+    /* Monofásico: sem crédito entrada, sem débito saída */
+    document.getElementById('pis_in').value  = '0';
+    document.getElementById('pis_out').value = '0';
+  }
+
+  /* tag do detalhamento */
+  var tag = document.getElementById('bk_regime_tag');
+  if(r==='P')      { tag.textContent='Lucro presumido'; tag.className='bk-regime rp'; }
+  else if(r==='R') { tag.textContent='Lucro real';      tag.className='bk-regime rr'; }
+  else             { tag.textContent='Monofásico';      tag.className='bk-regime rm'; }
+
+  /* linhas PIS no detalhamento: só no Lucro Real */
+  var rowPisCred = document.getElementById('row_pis_cred');
+  var rowPisDeb  = document.getElementById('row_pis_deb');
+  rowPisCred.className = 'bk-row' + (r==='R' ? '' : ' oculto');
+  rowPisDeb.className  = 'bk-row' + (r==='R' ? '' : ' oculto');
+
+  /* setTimeout garante que o DOM (pis_out.value) atualizou antes de recalcular */
+  setTimeout(function(){ recalcAfterRegime(); }, 0);
+}
+
+function recalcAfterRegime(){
+  var c=getVal('custo'), p=getVal('preco'), m=getVal('margem'), mk=getVal('markup'), mb=getVal('margem_b');
+  if(c!==null&&p!==null)        custoPreco();
+  else if(c!==null&&mb!==null)  custoMargemB();
+  else if(c!==null&&m!==null)   custoMargem();
+  else if(c!==null&&mk!==null) custoMarkup();
+  else if(p!==null&&mb!==null) precoMargemB();
+  else if(p!==null&&m!==null)  precoMargem();
+}
+
+/* inicializar regime */
+setRegime('P');
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function el(id){ return document.getElementById(id); }
+function fR(v){ return 'R$ '+v.toFixed(2).replace('.',','); }
+function fP(v){ return v.toFixed(2).replace('.',',')+' %'; }
+function fX(v){ return v.toFixed(3).replace('.',',')+'x'; }
+var lock = false;
+
+function getVal(id){
+  var raw = el(id).value.replace(',','.');
+  var v = parseFloat(raw);
+  return isNaN(v) ? null : v;
+}
+
+function getTax(){
+  var ii  = getVal('icms_in')  || 0;
+  var io  = getVal('icms_out') || 0;
+  var pi  = regime==='R' ? (getVal('pis_in')  || 0) : 0;
+  var po  = regime==='R' ? (getVal('pis_out') || 0)
+          : regime==='M' ? 0
+          : (getVal('pis_out') || 3.65);
+  return {ii:ii, io:io, pi:pi, po:po};
+}
+
+/* ============================================================
+   FÓRMULAS — idênticas à planilha
+   ============================================================
+   custo_sem_impostos = custo - custo*icms_in/100 - custo*pis_in/100
+   margem_bruta       = (preco - preco*icms_out/100 - csi) / preco
+                        (lucro sem PIS/Cofins dividido pelo preco bruto)
+   margem_liquida     = (preco - preco*icms_out/100 - preco*pis_out/100 - csi) / preco
+                        (lucro com todos impostos dividido pelo preco bruto)
+   preco (via MB)     = csi / (1 - icms_out/100 - mb/100)
+   preco (via ML)     = csi / (1 - icms_out/100 - pis_out/100 - ml/100)
+   ============================================================ */
+
+function calcCSI(c, t){
+  return c - c*(t.ii/100) - c*(t.pi/100);
+}
+function calcMB(c, p, t){
+  var csi = calcCSI(c, t);
+  var debIcms = p*(t.io/100);
+  return (p - debIcms - csi) / p * 100;
+}
+function calcML(c, p, t){
+  var csi = calcCSI(c, t);
+  var debIcms = p*(t.io/100);
+  var debPis  = p*(t.po/100);
+  return (p - debIcms - debPis - csi) / p * 100;
+}
+function calcPrecoFromMB(c, mb, t){
+  var csi = calcCSI(c, t);
+  var den = 1 - t.io/100 - mb/100;
+  if(den<=0) return null;
+  return csi / den;
+}
+function calcPrecoFromML(c, ml, t){
+  var csi = calcCSI(c, t);
+  var den = 1 - t.io/100 - t.po/100 - ml/100;
+  if(den<=0) return null;
+  return csi / den;
+}
+
+function show(c, p, t){
+  var csi     = calcCSI(c, t);
+  var credIcms = c*(t.ii/100);
+  var credPis  = c*(t.pi/100);
+  var debIcms  = p*(t.io/100);
+  var debPis   = p*(t.po/100);
+  var recLiq   = p - debIcms - debPis;
+  var lucro    = recLiq - csi;
+  var mb       = calcMB(c, p, t);
+  var ml       = calcML(c, p, t);
+  var mk       = p/c;
+  var cargaTot = (debIcms + debPis - credIcms - credPis) / p * 100;
+
+  el('r_c').textContent      = fR(c);
+  el('r_cr_icms').textContent= '+ '+fR(credIcms);
+  el('r_cr_pis').textContent = '+ '+fR(credPis);
+  el('r_csi').textContent    = fR(csi);
+  el('r_p').textContent      = fR(p);
+  el('r_d_icms').textContent = '- '+fR(debIcms);
+  el('r_d_pis').textContent  = '- '+fR(debPis);
+  el('r_rec_liq').textContent= fR(recLiq);
+  el('r_l').textContent      = fR(lucro)+' ('+fP(ml)+')';
+  el('s_mb').textContent     = fP(mb);
+  el('s_m').textContent      = fP(ml);
+  el('s_mk').textContent     = fX(mk);
+  el('s_ic').textContent     = fP(cargaTot < 0 ? 0 : cargaTot);
+
+  /* Atualizar campos calculados — força atualização independente de lock externo */
+  var _prevLock = lock;
+  lock = true;
+  el('margem_b').value = mb.toFixed(2);
+  el('margem').value   = ml.toFixed(2);
+  lock = _prevLock;
+
+  el('empty_state').style.display = 'none';
+  el('bk_body').style.display     = 'block';
+  el('bd_badge').style.display    = 'inline-flex';
+  el('bk_regime_tag').style.display = 'inline-flex';
+}
+
+/* ============================================================
+   FUNÇÕES DE CÁLCULO
+   ============================================================ */
+function custoMargemB(){
+  var c=getVal('custo'), mb=getVal('margem_b'), t=getTax();
+  if(c===null||mb===null) return;
+  var p = calcPrecoFromMB(c, mb, t);
+  if(p===null) return;
+  var ml = calcML(c, p, t);
+  lock=true;
+  el('preco').value   = p.toFixed(2);
+  el('markup').value  = (p/c).toFixed(4);
+  el('margem').value  = ml.toFixed(2);
+  lock=false;
+  show(c, p, t);
+}
+function custoMargem(){
+  var c=getVal('custo'), m=getVal('margem'), t=getTax();
+  if(c===null||m===null) return;
+  var p = calcPrecoFromML(c, m, t);
+  if(p===null) return;
+  var mb = calcMB(c, p, t);
+  lock=true;
+  el('preco').value    = p.toFixed(2);
+  el('markup').value   = (p/c).toFixed(4);
+  el('margem_b').value = mb.toFixed(2);
+  lock=false;
+  show(c, p, t);
+}
+function custoMarkup(){
+  var c=getVal('custo'), mk=getVal('markup'), t=getTax();
+  if(c===null||mk===null) return;
+  var p  = c*mk;
+  var mb = calcMB(c, p, t);
+  var ml = calcML(c, p, t);
+  lock=true;
+  el('preco').value    = p.toFixed(2);
+  el('margem_b').value = mb.toFixed(2);
+  el('margem').value   = ml.toFixed(2);
+  lock=false;
+  show(c, p, t);
+}
+function custoPreco(){
+  var c=getVal('custo'), p=getVal('preco'), t=getTax();
+  if(c===null||p===null) return;
+  var mb = calcMB(c, p, t);
+  var ml = calcML(c, p, t);
+  lock=true;
+  el('margem_b').value = mb.toFixed(2);
+  el('margem').value   = ml.toFixed(2);
+  el('markup').value   = (p/c).toFixed(4);
+  lock=false;
+  show(c, p, t);
+}
+function precoMargemB(){
+  /* MB = (p - p*io - csi) / p  => csi = p*(1 - io/100 - mb/100)
+     csi = c*(1 - ii - pi)      => c = csi / (1 - ii/100 - pi/100) */
+  var p=getVal('preco'), mb=getVal('margem_b'), t=getTax();
+  if(p===null||mb===null) return;
+  var csi = p*(1 - t.io/100 - mb/100);
+  var den = 1 - t.ii/100 - t.pi/100;
+  if(den<=0) return;
+  var c  = csi/den;
+  var ml = calcML(c, p, t);
+  lock=true;
+  el('custo').value   = c.toFixed(2);
+  el('markup').value  = (p/c).toFixed(4);
+  el('margem').value  = ml.toFixed(2);
+  lock=false;
+  show(c, p, t);
+}
+function precoMargem(){
+  /* ML = (p - p*io - p*po - csi) / p  => csi = p*(1 - io/100 - po/100 - ml/100)
+     csi = c*(1 - ii - pi)             => c = csi / (1 - ii/100 - pi/100) */
+  var p=getVal('preco'), m=getVal('margem'), t=getTax();
+  if(p===null||m===null) return;
+  var csi = p*(1 - t.io/100 - t.po/100 - m/100);
+  var den = 1 - t.ii/100 - t.pi/100;
+  if(den<=0) return;
+  var c  = csi/den;
+  var mb = calcMB(c, p, t);
+  lock=true;
+  el('custo').value    = c.toFixed(2);
+  el('markup').value   = (p/c).toFixed(4);
+  el('margem_b').value = mb.toFixed(2);
+  lock=false;
+  show(c, p, t);
+}
+
+/* ============================================================
+   RECALC CENTRAL
+   ============================================================ */
+function recalc(id){
+  if(lock) return;
+  var c=getVal('custo'), p=getVal('preco'), m=getVal('margem'), mk=getVal('markup'), mb=getVal('margem_b');
+
+  if(id==='icms_in'||id==='icms_out'||id==='pis_in'||id==='pis_out'){
+    if(c!==null&&p!==null)        custoPreco();
+    else if(c!==null&&mb!==null)  custoMargemB();
+    else if(c!==null&&m!==null)   custoMargem();
+    else if(c!==null&&mk!==null)  custoMarkup();
+    else if(p!==null&&mb!==null)  precoMargemB();
+    else if(p!==null&&m!==null)   precoMargem();
+    return;
+  }
+  if(id==='custo'){
+    if(c!==null&&p!==null)        custoPreco();
+    else if(c!==null&&mb!==null)  custoMargemB();
+    else if(c!==null&&m!==null)   custoMargem();
+    else if(c!==null&&mk!==null)  custoMarkup();
+    return;
+  }
+  if(id==='margem_b'){
+    if(c!==null)       custoMargemB();
+    else if(p!==null)  precoMargemB();
+    return;
+  }
+  if(id==='margem'){
+    if(c!==null)       custoMargem();
+    else if(p!==null)  precoMargem();
+    return;
+  }
+  if(id==='preco'){
+    if(c!==null)        custoPreco();
+    else if(mb!==null)  precoMargemB();
+    else if(m!==null)   precoMargem();
+    return;
+  }
+  if(id==='markup'){
+    if(c!==null) custoMarkup();
+    return;
+  }
+}
+
+var calcIds=['custo','margem','margem_b','preco','markup','icms_in','icms_out','pis_in','pis_out'];
+for(var i=0;i<calcIds.length;i++){
+  (function(id){
+    var node=el(id);
+    node.addEventListener('input',  function(){recalc(id);});
+    node.addEventListener('change', function(){recalc(id);});
+    node.addEventListener('blur',   function(){recalc(id);});
+  })(calcIds[i]);
+}
+
+el('btn_reset').addEventListener('click',function(){
+  var clr=['custo','margem','margem_b','preco','markup'];
+  for(var i=0;i<clr.length;i++) el(clr[i]).value='';
+  el('icms_in').value='12'; el('icms_out').value='25';
+  el('empty_state').style.display='block';
+  el('bk_body').style.display='none';
+  el('bd_badge').style.display='none';
+  el('bk_regime_tag').style.display='none';
+  setRegime(regime);
+});
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function showTab(t){
+  el('pane_calc').style.display = t==='calc' ? 'block' : 'none';
+  el('pane_aliq').style.display = t==='aliq' ? 'block' : 'none';
+  el('tab_calc').className = 'tab'+(t==='calc'?' active':'');
+  el('tab_aliq').className = 'tab'+(t==='aliq'?' active':'');
+}
+
+/* ============================================================
+   DEPARTAMENTOS
+   ============================================================ */
+var DEPTS=[
+  {id:'maquiagem',name:'Maquiagem',sub:'Base, batom, sombra...',icon:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="3"/></svg>',produtos:[{nome:'Maquiagem em geral',sub:'Base, batom, sombra, rímel, blush, pó facial',ncm:'NCM 3304',in:25,out:25,obs:'Cosmético — art. 55 IV RICMS/SP. Alíquota seletiva.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'},{nome:'Esmalte e removedor',sub:'Esmaltes, bases, removedores',ncm:'NCM 3304',in:25,out:25,obs:'Preparações para manicure — cosmético art. 55 IV.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'},{nome:'Protetor solar / bronzeador',sub:'Filtros solares, autobronzeadores',ncm:'NCM 3304',in:18,out:18,obs:'Exceção expressa no art. 55 IV — excluído da alíquota de 25%.',fonte:'RICMS/SP art. 55 IV (exceção) · SEFAZ-SP'}]},
+  {id:'skincare',name:'Skincare',sub:'Cremes, hidratantes...',icon:'<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',produtos:[{nome:'Hidratante facial e corporal',sub:'Cremes, loções, géis corporais',ncm:'NCM 3304',in:25,out:25,obs:'Produto de beleza para cuidados da pele — cosmético art. 55 IV.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'},{nome:'Creme anti-idade / tratamento',sub:'Sérum, vitamina C, ácidos',ncm:'NCM 3304',in:25,out:25,obs:'Preparação cosmética para cuidados da pele — art. 55 IV.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'},{nome:'Protetor solar',sub:'FPS 30, 50, toque seco',ncm:'NCM 3304',in:18,out:18,obs:'Exceção expressa — anti-solares excluídos do art. 55 IV.',fonte:'RICMS/SP art. 55 IV (exceção) · SEFAZ-SP'}]},
+  {id:'cabelos',name:'Cabelos',sub:'Shampoo, condicionador...',icon:'<svg viewBox="0 0 24 24"><path d="M9 12c0 3 1.5 6 3 6s3-3 3-6"/><path d="M6 8c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M6 8c0 2 .5 4 1.5 5.5"/><path d="M18 8c0 2-.5 4-1.5 5.5"/></svg>',produtos:[{nome:'Shampoo',sub:'Xampus para os cabelos',ncm:'NCM 3305.10',in:18,out:18,obs:'Exceção expressa — posição 3305.10 excluída do art. 55 IV. Higiene pessoal.',fonte:'RICMS/SP art. 55 IV (exceção 3305.10)'},{nome:'Condicionador',sub:'Condicionadores, cremes para pentear',ncm:'NCM 3305.90',in:25,out:25,obs:'Finalidade cosmética — diferente do shampoo, tributado a 25%.',fonte:'RICMS/SP art. 55 IV · Parecer SEFAZ-ES 542/2024'},{nome:'Tintura / coloração',sub:'Tinturas, descolorantes, matizadores',ncm:'NCM 3305',in:25,out:25,obs:'Preparação capilar cosmética — art. 55 IV.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'},{nome:'Finalizadores capilares',sub:'Géis, laquês, óleos, máscaras',ncm:'NCM 3305.90',in:25,out:25,obs:'Preparações capilares cosméticas — art. 55 IV.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'}]},
+  {id:'perfumaria',name:'Perfumaria',sub:'Perfumes, colônias...',icon:'<svg viewBox="0 0 24 24"><path d="M9 3h6v4H9z"/><path d="M12 7v2"/><rect x="5" y="9" width="14" height="12" rx="2"/><path d="M9 14h6"/></svg>',produtos:[{nome:'Perfume / extrato',sub:'Perfumes, extratos, águas perfumadas',ncm:'NCM 3303',in:25,out:25,obs:'Posição 3303 sujeita a 25% pelo art. 55 IV.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'},{nome:'Colônia / deo colônia',sub:'Águas-de-colônia, splash',ncm:'NCM 3303',in:25,out:25,obs:'NCM 3303 — 25%. Não confundir com desodorante corporal (3307.20) que é 18%.',fonte:'RICMS/SP art. 55 IV · RC SEFAZ-SP 18477/2018'}]},
+  {id:'higiene',name:'Higiene pessoal',sub:'Sabonete, desodorante...',icon:'<svg viewBox="0 0 24 24"><path d="M7 21h10"/><path d="M12 21V9"/><path d="M5 9h14"/><path d="M9 9V5a3 3 0 0 1 6 0v4"/></svg>',produtos:[{nome:'Sabonete',sub:'Em barra, líquido, espuma',ncm:'NCM 3401',in:18,out:18,obs:'NCM 3401 fora das posições 3303–3307 — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'},{nome:'Desodorante corporal',sub:'Spray, roll-on, stick',ncm:'NCM 3307.20',in:18,out:18,obs:'Exceção expressa — posição 3307.20 excluída do art. 55 IV.',fonte:'RICMS/SP art. 55 IV (exceção 3307.20)'},{nome:'Preparações para barbear',sub:'Espuma, gel, creme de barbear',ncm:'NCM 3307.10',in:18,out:18,obs:'Exceção expressa — código 3307.10.0100 excluído do art. 55 IV.',fonte:'RICMS/SP art. 55 IV (exceção 3307.10.0100)'},{nome:'Fralda descartável',sub:'Infantil e adulto',ncm:'NCM 9619',in:18,out:18,obs:'NCM 9619 fora do capítulo 33 — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'},{nome:'Absorvente feminino',sub:'Interno e externo',ncm:'NCM 9619',in:18,out:18,obs:'NCM 9619 — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'},{nome:'Lenço umedecido',sub:'Lenços e toalhinhas',ncm:'NCM 5601',in:18,out:18,obs:'Produto têxtil NCM 5601 — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'}]},
+  {id:'bucal',name:'Higiene bucal',sub:'Creme dental, enxaguante...',icon:'<svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v2H8V6a4 4 0 0 1 4-4z"/><path d="M8 8v10a2 2 0 0 0 4 0 2 2 0 0 0 4 0V8"/></svg>',produtos:[{nome:'Creme dental',sub:'Dentifrícios, géis dentais',ncm:'NCM 3306.10',in:18,out:18,obs:'NCM 3306 não listado no art. 55 IV — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'},{nome:'Enxaguante bucal',sub:'Enxaguantes, colutórios',ncm:'NCM 3306.90',in:18,out:18,obs:'NCM 3306 — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'},{nome:'Fio dental',sub:'Fios e fitas dentais',ncm:'NCM 3306.20',in:18,out:18,obs:'NCM 3306 — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'}]},
+  {id:'unhas',name:'Unhas',sub:'Esmaltes, gel, acrílico...',icon:'<svg viewBox="0 0 24 24"><path d="M8 3h8l4 9H4L8 3z"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>',produtos:[{nome:'Esmalte',sub:'Esmaltes, base, top coat',ncm:'NCM 3304.30',in:25,out:25,obs:'Preparação para manicure — cosmético art. 55 IV.',fonte:'RICMS/SP art. 55 IV'},{nome:'Removedor de esmalte',sub:'Com e sem acetona',ncm:'NCM 3304',in:25,out:25,obs:'Preparação para manicure — cosmético art. 55 IV.',fonte:'RICMS/SP art. 55 IV'},{nome:'Gel UV / acrílico',sub:'Gel para alongamento, acrigel',ncm:'NCM 3304 / 3907',in:25,out:25,obs:'Finalidade cosmética (embelezamento das unhas) — art. 55 IV. Confirme NCM com seu contador.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'}]},
+  {id:'barba',name:'Barba e depilação',sub:'Creme, lâmina, cera...',icon:'<svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>',produtos:[{nome:'Creme / gel de barbear',sub:'Preparações para barbear',ncm:'NCM 3307.10',in:18,out:18,obs:'Exceção expressa — 3307.10.0100 excluído do art. 55 IV.',fonte:'RICMS/SP art. 55 IV (exceção 3307.10.0100)'},{nome:'Lâmina de barbear',sub:'Lâminas descartáveis',ncm:'NCM 8212',in:18,out:18,obs:'NCM 8212 fora do capítulo 33 — alíquota geral 18%.',fonte:'RICMS/SP art. 52 I'},{nome:'Cera e creme depilatório',sub:'Ceras quentes, frias, cremes',ncm:'NCM 3307',in:25,out:25,obs:'Depilatórios — preparações cosméticas art. 55 IV, 25%.',fonte:'RICMS/SP art. 55 IV · SEFAZ-SP'}]}
+];
+
+var activeDept=null;
+function renderDepts(){
+  var g=el('dept_grid'),h='';
+  for(var i=0;i<DEPTS.length;i++){
+    var d=DEPTS[i];
+    h+='<button class="dept-btn" id="db_'+d.id+'" type="button" onclick="selectDept(\''+d.id+'\')">';
+    h+='<div class="db-icon">'+d.icon+'</div>';
+    h+='<div class="db-name">'+d.name+'</div>';
+    h+='<div class="db-sub">'+d.sub+'</div>';
+    h+='</button>';
+  }
+  g.innerHTML=h;
+}
+function selectDept(id){
+  if(activeDept){ var pv=el('db_'+activeDept); if(pv) pv.className='dept-btn'; }
+  activeDept=id;
+  var btn=el('db_'+id); if(btn) btn.className='dept-btn active';
+  var dept=null;
+  for(var i=0;i<DEPTS.length;i++){ if(DEPTS[i].id===id){dept=DEPTS[i];break;} }
+  if(!dept) return;
+  el('dp_icon').innerHTML=dept.icon;
+  el('dp_title').textContent=dept.name;
+  el('dp_subtitle').textContent=dept.produtos.length+' produto(s)';
+  var h='';
+  for(var j=0;j<dept.produtos.length;j++){
+    var p=dept.produtos[j];
+    var ic=p.in===25?'aliq-pill aliq-in':'aliq-pill aliq-in18';
+    var oc=p.out===25?'aliq-pill aliq-out':'aliq-pill aliq-out18';
+    h+='<div class="prod-item">';
+    h+='<div class="prod-top"><div><div class="prod-name">'+p.nome+'</div><div class="prod-ncm">'+p.ncm+'</div></div>';
+    h+='<div class="aliq-pills"><span class="'+ic+'">Ent '+p.in+'%</span><span class="'+oc+'">Saí '+p.out+'%</span></div></div>';
+    if(p.sub) h+='<div class="prod-obs" style="color:#A8A69F;font-size:11px;margin-bottom:4px">'+p.sub+'</div>';
+    h+='<div class="prod-obs">'+p.obs+'</div>';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px">';
+    h+='<span class="prod-source">'+p.fonte+'</span>';
+    h+='<button type="button" onclick="usarAliquota('+p.in+','+p.out+')" style="font-size:11px;font-weight:600;color:#0F6E56;background:#E1F5EE;border:1px solid #9FE1CB;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;-webkit-appearance:none;white-space:nowrap">Usar na calculadora</button>';
+    h+='</div></div>';
+  }
+  el('dp_products').innerHTML=h;
+  el('detail_panel').style.display='block';
+  el('detail_empty').style.display='none';
+}
+function usarAliquota(inp,out){
+  el('icms_in').value=inp; el('icms_out').value=out;
+  showTab('calc'); recalc('icms_in');
+}
+
+renderDepts();
+window.showTab=showTab;
+window.selectDept=selectDept;
+window.usarAliquota=usarAliquota;
+window.setRegime=setRegime;
+
+})();
+</script>
+</body>
+</html>
